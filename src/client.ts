@@ -33,7 +33,7 @@ export class Client {
     }
   };
 
-  constructor(id: string) {
+  constructor(id: string, onConnectCallback?: (client: Client) => void) {
     this.client = new WebsocketClient();
     this.clientId = id;
     console.log(`New client instantiated: ${this.clientId}`);
@@ -47,6 +47,9 @@ export class Client {
     this.client.on("connect", (connection) => {
       console.log(`${this.clientId} WebSocket Client Connected`);
       this.connection = connection;
+
+      onConnectCallback && onConnectCallback(this);
+
       this.sendMessage("Hello world!");
 
       connection.on("error", (error) => {
