@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "boot:app": "npx tsc && npx copyfiles -f ./src/public/pages/*.html ./dist/public/pages && node -r dotenv/config ./dist/app.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +16,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "copyfiles": "^2.4.1",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "websocket": "^1.0.34"
