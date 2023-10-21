@@ -8,16 +8,17 @@ export interface IWsClient {
 }
 
 const getConnectedClient = (wsClients: IWsClient[], connection: connection) => {
-  let connectedClient: IWsClient | undefined;
   const connectionInWsClients = wsClients.find(
     ({ id: wsClientId, connection: wsClientConnection }) =>
       wsClientConnection === connection
   );
-  if (!connectionInWsClients) {
-    const newConnectionId = randomUUID();
-    connectedClient = { id: newConnectionId, connection };
-    wsClients.push(connectedClient);
+  if (connectionInWsClients) {
+    return connectionInWsClients;
   }
+
+  const newConnectionId = randomUUID();
+  const connectedClient: IWsClient = { id: newConnectionId, connection };
+  wsClients.push(connectedClient);
   return connectedClient;
 };
 
