@@ -1,13 +1,20 @@
 import http from "http";
-import { connection, server as websocketServer } from "websocket";
+import {
+  Message as WebSocketMessage,
+  connection as WebSocketConnection,
+  server as WebSocketServer,
+} from "websocket";
 import { randomUUID } from "crypto";
 
 export interface IWsClient {
   id: string;
-  connection: connection;
+  connection: WebSocketConnection;
 }
 
-const getConnectedClient = (wsClients: IWsClient[], connection: connection) => {
+const getConnectedClient = (
+  wsClients: IWsClient[],
+  connection: WebSocketConnection
+) => {
   const connectionInWsClients = wsClients.find(
     ({ id: wsClientId, connection: wsClientConnection }) =>
       wsClientConnection === connection
@@ -22,11 +29,28 @@ const getConnectedClient = (wsClients: IWsClient[], connection: connection) => {
   return connectedClient;
 };
 
+const handleIncomingMessage = (
+  message: WebSocketMessage,
+  wsClients: IWsClient[],
+  sendersConnection: WebSocketConnection
+) => {
+  if (message.type === "utf8") {
+    console.log(`"Received Message:  ${message.utf8Data}"`);
+    wsClients.forEach((client) => {
+      client.connection.sendUTF(message.utf8Data);
+    });
+  } else if (message.type === "binary") {
+    console.log(
+      "Received Binary Message of " + message.binaryData.length + " bytes"
+    );
+  }
+};
+
 export const newWebsocketServer = (
   httpServer: http.Server,
   wsClients: IWsClient[]
 ) => {
-  const wsServer = new websocketServer({
+  const wsServer = new WebSocketServer({
     httpServer,
   });
 
@@ -39,16 +63,8 @@ export const newWebsocketServer = (
       `${connectedClient.id} wsServer Connection accepted (${wsClients.length} total clients).`
     );
 
-    connection.on("message", (message) => {
-      if (message.type === "utf8") {
-        console.log(`"Received Message:  ${message.utf8Data}"`);
-        // connection.sendUTF(message.utf8Data);
-      } else if (message.type === "binary") {
-        console.log(
-          "Received Binary Message of " + message.binaryData.length + " bytes"
-        );
-        // connection.sendBytes(message.binaryData);
-      }
+    connection.on("message", (message: WebSocketMessage) => {
+      handleIncomingMessage(message, wsClients, connection);
     });
 
     connection.on("close", (reasonCode, description) => {

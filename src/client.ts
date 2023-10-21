@@ -1,5 +1,5 @@
 import {
-  client as WebsocketClient,
+  client as WebSocketClient,
   Message as WebSocketMessage,
   connection as WebSocketConnection,
 } from "websocket";
@@ -11,7 +11,7 @@ interface IMessage {
 }
 
 export class Client {
-  private client: WebsocketClient;
+  private client: WebSocketClient;
   private clientId: string;
   private connection: WebSocketConnection;
 
@@ -34,7 +34,7 @@ export class Client {
   };
 
   constructor(id: string, onConnectCallback?: (client: Client) => void) {
-    this.client = new WebsocketClient();
+    this.client = new WebSocketClient();
     this.clientId = id;
     console.log(`New client instantiated: ${this.clientId}`);
 
