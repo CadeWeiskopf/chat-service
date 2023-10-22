@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "boot:app": "npx tsc && npx copyfiles -f ./src/public/pages/*.html ./dist/public/pages && node -r dotenv/config ./dist/app.js"
+    "boot:app": "npx tsc && node -r dotenv/config ./dist/app.js"
   },
   "keywords": [],
   "author": "",
