@@ -24,17 +24,20 @@ const getConnectedClient = (
   wsClients: IWsClient[],
   connection: WebSocketConnection
 ) => {
-  const connectionInWsClients = wsClients.find(
-    ({ id: wsClientId, connection: wsClientConnection }) =>
-      wsClientConnection === connection
-  );
-  if (connectionInWsClients) {
-    return connectionInWsClients;
-  }
+  let connectedClient: IWsClient;
+  acquireLock(() => {
+    const connectionInWsClients = wsClients.find(
+      ({ id: wsClientId, connection: wsClientConnection }) =>
+        wsClientConnection === connection
+    );
+    if (connectionInWsClients) {
+      return connectionInWsClients;
+    }
 
-  const newConnectionId = randomUUID();
-  const connectedClient: IWsClient = { id: newConnectionId, connection };
-  wsClients.push(connectedClient);
+    const newConnectionId = randomUUID();
+    connectedClient = { id: newConnectionId, connection };
+    wsClients.push(connectedClient);
+  });
   return connectedClient;
 };
 
@@ -73,7 +76,9 @@ export const newWebsocketServer = (
     );
 
     connection.on("message", (message: WebSocketMessage) => {
-      handleIncomingMessage(message, wsClients, connection);
+      acquireLock(() => {
+        handleIncomingMessage(message, wsClients, connection);
+      });
     });
 
     connection.on("close", (reasonCode, description) => {
