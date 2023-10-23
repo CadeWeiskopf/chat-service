@@ -5,6 +5,15 @@ import {
   server as WebSocketServer,
 } from "websocket";
 import { randomUUID } from "crypto";
+import AsyncLock from "async-lock";
+
+const lockName = "ws-lock";
+const lock = new AsyncLock({
+  maxOccupationTime: 2000,
+});
+const acquireLock = (fn: () => void) => {
+  lock.acquire(lockName, fn);
+};
 
 export interface IWsClient {
   id: string;
@@ -68,13 +77,17 @@ export const newWebsocketServer = (
     });
 
     connection.on("close", (reasonCode, description) => {
-      const indexOfConnectedClient = wsClients.indexOf(connectedClient);
-      if (indexOfConnectedClient > -1) {
-        wsClients.splice(indexOfConnectedClient, 1);
-        console.log(`Removed client on close: ${connectedClient.id}`);
-      } else {
-        console.log(`${connectedClient.id} disconnected but not in wsClients`);
-      }
+      acquireLock(() => {
+        const indexOfConnectedClient = wsClients.indexOf(connectedClient);
+        if (indexOfConnectedClient > -1) {
+          wsClients.splice(indexOfConnectedClient, 1);
+          console.log(`Removed client on close: ${connectedClient.id}`);
+        } else {
+          console.log(
+            `${connectedClient.id} disconnected but not in wsClients`
+          );
+        }
+      });
     });
   });
 
